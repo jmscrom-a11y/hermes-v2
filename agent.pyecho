@@ -1,0 +1,1 @@
+    msg.append({"role": "assistant", "content": ans})     msg.append({"role": "user", "content": f"Result: {out}. Summarize in Korean."})
