@@ -1,0 +1,14 @@
+openai>=1.40.0
+python-telegram-bot>=22.0
+python-dotenv
+requests
+gitpython
+duckduckgo-search
+fastapi
+uvicorn
+python-pptx
+pydantic
+rich
+black
+ruff
+pytest
