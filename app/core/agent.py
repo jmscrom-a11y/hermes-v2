@@ -1,5 +1,5 @@
-from app.core.router import route
+from app.planner.executor import execute
 
 
 def run(prompt: str):
-    return route(prompt)
+    return execute(prompt)
