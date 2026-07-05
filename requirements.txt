@@ -12,3 +12,4 @@ rich
 black
 ruff
 pytest
+duckduckgo-search>=8.1.1

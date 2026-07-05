@@ -8,7 +8,7 @@ from app.llm import chat
 def route(prompt: str) -> str:
     text = prompt.lower()
 
-    if "ppt" in text:
+    if "ppt" in text or "발표" in text:
         return ppt(prompt)
 
     if "검색" in text or "search" in text:
