@@ -1,0 +1,17 @@
+[2026-07-05 12:57:14] INFO  Hermes V2 Starting
+[2026-07-05 12:57:24] INFO  Telegram <- 안녕
+[2026-07-05 12:57:24] INFO  LLM Request (10 messages)
+[2026-07-05 12:57:26] INFO  LLM Response OK
+[2026-07-05 12:57:26] INFO  LLM Request (12 messages)
+[2026-07-05 12:57:28] INFO  LLM Response OK
+[2026-07-05 12:57:29] INFO  Reply sent
+[2026-07-05 12:57:35] INFO  Telegram <- 검색해 CJ플레시웨이
+[2026-07-05 12:57:35] INFO  LLM Request (14 messages)
+[2026-07-05 12:57:36] INFO  LLM Response OK
+[2026-07-05 12:57:37] INFO  LLM Request (16 messages)
+[2026-07-05 12:57:45] INFO  LLM Response OK
+[2026-07-05 12:57:46] INFO  Reply sent
+[2026-07-05 12:57:50] INFO  Telegram <- 시장분석 ppt 만들어
+[2026-07-05 12:57:50] INFO  LLM Request (18 messages)
+[2026-07-05 12:57:53] INFO  LLM Response OK
+[2026-07-05 12:57:55] INFO  PPT -> /Users/crom/hermes-v2/output/report.pptx
