@@ -1,2 +1,10 @@
+from app.git.backup import backup
+
+
 def run(prompt: str):
-    return "[GIT] 준비 중"
+    message = prompt.replace("git", "").replace("백업", "").strip()
+
+    if not message:
+        message = "Auto Backup"
+
+    return backup(message)
