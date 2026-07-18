@@ -2,7 +2,7 @@ from pathlib import Path
 from datetime import datetime
 import shutil
 import subprocess
-from config import BACKUP_DIR
+from app.config.settings import BACKUP_DIR
 
 def backup_file(file_path):
     src = Path(file_path)

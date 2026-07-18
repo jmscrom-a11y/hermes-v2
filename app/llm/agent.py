@@ -1,5 +1,5 @@
 from openai import OpenAI
-from config import OLLAMA_BASE_URL, MODEL
+from app.config.settings import OLLAMA_BASE_URL, MODEL
 
 client = OpenAI(
     base_url=OLLAMA_BASE_URL,

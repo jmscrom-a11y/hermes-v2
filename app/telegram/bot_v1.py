@@ -14,3 +14,5 @@ def search_web(q):
     try:
         res = DDGS().news(q, max_results=5)
         if not res: res = DDGS().text(q, max_results=5)
+    except Exception:
+        pass
