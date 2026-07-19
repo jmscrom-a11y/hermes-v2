@@ -1,4 +1,4 @@
-import os, json, requests, pptx
+import os, json, pathlib, requests, pptx
 from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
 from duckduckgo_search import DDGS
@@ -110,12 +110,22 @@ def build_application():
 
     from app.config.settings import RAG_INDEX_DIR, RAG_TOP_K
     from app.llm.agent import ask_llm
+    from app.rag.loader import collect_files
 
     # RAG 파이프라인 인라인 생성
     pipeline: RAGPipeline | None = None
     try:
-        pipeline = load_pipeline(RAG_INDEX_DIR, k=RAG_TOP_K, llm=ask_llm)
-    except Exception:
+        docs_dir = pathlib.Path(__file__).resolve().parent.parent.parent / "data" / "docs"
+        doc_paths = [str(p) for p in collect_files([str(docs_dir)])]
+        pipeline = load_pipeline(
+            RAG_INDEX_DIR,
+            k=RAG_TOP_K,
+            llm=ask_llm,
+            hybrid=True,
+            documents=doc_paths,
+        )
+    except Exception as e:
+        print("LOAD_PIPELINE ERROR:", repr(e))
         pipeline = None
 
     application = Application.builder().token(BOT_TOKEN).build()

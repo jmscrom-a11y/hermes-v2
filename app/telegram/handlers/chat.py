@@ -9,15 +9,21 @@ from app.rag.pipeline import RAGPipeline
 
 def answer_question(question: str, pipeline: RAGPipeline, llm=ask_llm) -> str:
     """RAG 파이프라인으로 답변하거나 pipeline 없으면 LLM에 직접 요청."""
+    print(f"PIPELINE={pipeline!r}, TYPE={type(pipeline)}")
     if pipeline is None:
+        print("[answer_question] pipeline is None → fallback to LLM")
         return llm(question)
 
     try:
         documents = pipeline.retrieve(question)
-    except Exception:
-        documents = []
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise
 
+    print(f"[answer_question] retrieve returned {len(documents)} documents")
     if not documents:
+        print("[answer_question] no documents → fallback to LLM")
         return llm(question)
 
     prompt = pipeline.prompt_builder.build(question, documents)

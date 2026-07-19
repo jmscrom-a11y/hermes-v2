@@ -76,6 +76,6 @@ def split_documents(documents, chunk_size=1000, chunk_overlap=150):
             sub_doc.metadata["line_range"] = (line_start, line_end)
 
             enriched.append(sub_doc)
-            line_start = line_end - chunk_overlap + 1  # overlap 반영
+            line_start = max(0, line_end - chunk_overlap + 1)  # overlap 반영
 
     return enriched

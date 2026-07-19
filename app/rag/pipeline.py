@@ -1,3 +1,4 @@
+import pathlib
 from dataclasses import dataclass
 
 from app.llm.agent import ask_llm
@@ -62,6 +63,10 @@ class PromptBuilder:
             location = f"{source}:{page}" if page is not None else source
             content = getattr(document, "page_content", str(document))
             parts.append(f"[{index}] {location}\n{content}")
+        print("=" * 80)
+        print("CONTEXT SENT TO LLM")
+        print("\n\n".join(parts))
+        print("=" * 80)
         return "\n\n".join(parts)
 
     def build(self, question, documents):
@@ -104,13 +109,9 @@ class RAGPipeline:
             metadata = getattr(doc, "metadata", {}) or {}
             source = metadata.get("source", "unknown")
             line_range = metadata.get("line_range")
-            if line_range:
-                sources.append(f"- {source} (lines {line_range[0]}-{line_range[1]})")
-            else:
-                sources.append(f"- {source}")
+            sources.append(f"- {source}")
 
-        return f"{answer}\n\nSources:\n" + "\n".join(sources)
-
+        return f"{answer}\n\nSources:\n" + "\n".join(dict.fromkeys(sources))
 
 def build_index(paths, index_dir=None, embedding_model=None, chunk_size=1000, chunk_overlap=150):
     documents = load_documents(paths)
@@ -131,7 +132,17 @@ def load_pipeline(index_dir, embedding_model=None, k=4, llm=ask_llm, hybrid=Fals
     vector_db = load_vector_db(embeddings, index_dir)
     retriever = create_retriever(vector_db, k=k)
     if hybrid and documents is not None:
-        pipeline_retriever = create_hybrid_retriever(retriever, documents, score_threshold=score_threshold)
+        # Convert file paths (Path/str) to LangChain Document objects
+        from langchain_community.document_loaders import PyMuPDFLoader, TextLoader
+        loaded_documents = []
+        for path in documents:
+            p = pathlib.Path(path)
+            if p.suffix.lower() == ".pdf":
+                loader = PyMuPDFLoader(str(p))
+            else:
+                loader = TextLoader(str(p), encoding="utf-8")
+            loaded_documents.extend(loader.load())
+        pipeline_retriever = create_hybrid_retriever(retriever, loaded_documents, score_threshold=score_threshold)
     else:
         pipeline_retriever = retriever
     return RAGPipeline(retriever=pipeline_retriever, llm=llm)
