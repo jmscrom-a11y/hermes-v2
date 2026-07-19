@@ -18,6 +18,9 @@ class FakePipeline:
         self.last_question = question
         return self.documents
 
+    def _format_answer(self, answer, documents):
+        return answer
+
 
 class FakeDocument:
     def __init__(self, page_content):

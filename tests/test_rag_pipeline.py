@@ -73,7 +73,9 @@ class RAGPipelineTest(unittest.TestCase):
 
         result = pipeline.answer("Which embeddings are used?")
 
-        self.assertEqual("answer", result)
+        self.assertIn("answer", result)
+        self.assertIn("Sources:", result)
+        self.assertIn("docs/rag.md", result)
         self.assertEqual("Which embeddings are used?", retriever.last_query)
         self.assertIn("Ollama embeddings are used.", seen_prompts[0])
 

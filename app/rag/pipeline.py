@@ -4,7 +4,13 @@ from app.llm.agent import ask_llm
 from app.rag.chunker import split_documents
 from app.rag.embeddings import create_embeddings
 from app.rag.loader import load_documents
-from app.rag.retriever import create_retriever, retrieve_documents
+from app.rag.retriever import (
+    BM25Retriever,
+    HybridRetriever,
+    create_hybrid_retriever,
+    create_retriever,
+    retrieve_documents,
+)
 from app.rag.vectordb import create_vector_db, load_vector_db, save_vector_db
 
 
@@ -66,10 +72,14 @@ class PromptBuilder:
 
 
 class RAGPipeline:
-    def __init__(self, retriever, llm=ask_llm, prompt_builder=None):
-        self.retriever = retriever
+    def __init__(self, retriever, llm=ask_llm, prompt_builder=None, hybrid=False, documents=None):
         self.llm = llm
         self.prompt_builder = prompt_builder or PromptBuilder()
+
+        if hybrid and documents is not None:
+            self.retriever = create_hybrid_retriever(retriever, documents)
+        else:
+            self.retriever = retriever
 
     def retrieve(self, question):
         return retrieve_documents(self.retriever, question)
@@ -81,7 +91,25 @@ class RAGPipeline:
     def answer(self, question):
         documents = self.retrieve(question)
         prompt = self.prompt_builder.build(question, documents)
-        return self.llm(prompt)
+        answer = self.llm(prompt)
+        return self._format_answer(answer, documents)
+
+    def _format_answer(self, answer, documents):
+        """답변에 Sources 섹션을 붙여 반환."""
+        if not documents:
+            return answer
+
+        sources = []
+        for doc in documents:
+            metadata = getattr(doc, "metadata", {}) or {}
+            source = metadata.get("source", "unknown")
+            line_range = metadata.get("line_range")
+            if line_range:
+                sources.append(f"- {source} (lines {line_range[0]}-{line_range[1]})")
+            else:
+                sources.append(f"- {source}")
+
+        return f"{answer}\n\nSources:\n" + "\n".join(sources)
 
 
 def build_index(paths, index_dir=None, embedding_model=None, chunk_size=1000, chunk_overlap=150):
@@ -98,18 +126,29 @@ def build_index(paths, index_dir=None, embedding_model=None, chunk_size=1000, ch
     return vector_db
 
 
-def load_pipeline(index_dir, embedding_model=None, k=4, llm=ask_llm):
+def load_pipeline(index_dir, embedding_model=None, k=4, llm=ask_llm, hybrid=False, documents=None, score_threshold=0.35):
     embeddings = create_embeddings(model=embedding_model)
     vector_db = load_vector_db(embeddings, index_dir)
     retriever = create_retriever(vector_db, k=k)
-    return RAGPipeline(retriever=retriever, llm=llm)
+    if hybrid and documents is not None:
+        pipeline_retriever = create_hybrid_retriever(retriever, documents, score_threshold=score_threshold)
+    else:
+        pipeline_retriever = retriever
+    return RAGPipeline(retriever=pipeline_retriever, llm=llm)
 
 
-def build_pipeline(paths, index_dir=None, embedding_model=None, k=4, llm=ask_llm):
-    vector_db = build_index(
-        paths=paths,
-        index_dir=index_dir,
-        embedding_model=embedding_model,
+def build_pipeline(paths, index_dir=None, embedding_model=None, k=4, llm=ask_llm, hybrid=False, score_threshold=0.35):
+    docs = load_documents(paths)
+    chunks = split_documents(
+        docs,
+        chunk_size=1000,
+        chunk_overlap=150,
     )
+    embeddings = create_embeddings(model=embedding_model)
+    vector_db = create_vector_db(chunks, embeddings)
     retriever = create_retriever(vector_db, k=k)
-    return RAGPipeline(retriever=retriever, llm=llm)
+    if hybrid:
+        pipeline_retriever = create_hybrid_retriever(retriever, docs, score_threshold=score_threshold)
+    else:
+        pipeline_retriever = retriever
+    return RAGPipeline(retriever=pipeline_retriever, llm=llm)

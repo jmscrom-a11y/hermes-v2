@@ -6,10 +6,12 @@ from unittest.mock import patch
 
 class ConfigTest(unittest.TestCase):
     def load_settings(self, env):
-        with patch.dict(os.environ, env, clear=True):
-            import app.config.settings as settings
+        # Block pydantic-settings from reading .env so defaults are tested
+        with patch("os.path.isfile", side_effect=lambda p, _orig=os.path.isfile: False if str(p).endswith(".env") else _orig(p)):
+            with patch.dict(os.environ, env, clear=True):
+                import app.config.settings as settings
 
-            return importlib.reload(settings)
+                return importlib.reload(settings)
 
     def test_default_settings_are_loaded(self):
         settings = self.load_settings({})

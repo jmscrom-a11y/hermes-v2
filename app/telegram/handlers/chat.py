@@ -21,7 +21,8 @@ def answer_question(question: str, pipeline: RAGPipeline, llm=ask_llm) -> str:
         return llm(question)
 
     prompt = pipeline.prompt_builder.build(question, documents)
-    return llm(prompt)
+    answer = llm(prompt)
+    return pipeline._format_answer(answer, documents)
 
 
 async def handle_message(
