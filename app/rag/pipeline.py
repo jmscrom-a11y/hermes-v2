@@ -57,11 +57,15 @@ class PromptBuilder:
     def build_context(self, documents):
         parts = []
         for index, document in enumerate(documents, start=1):
-            metadata = getattr(document, "metadata", {}) or {}
+            if isinstance(document, dict):
+                metadata = document.get("metadata", {}) or {}
+                content = document.get("page_content", str(document))
+            else:
+                metadata = getattr(document, "metadata", {}) or {}
+                content = getattr(document, "page_content", str(document))
             source = metadata.get("source", "unknown")
             page = metadata.get("page")
             location = f"{source}:{page}" if page is not None else source
-            content = getattr(document, "page_content", str(document))
             parts.append(f"[{index}] {location}\n{content}")
         print("=" * 80)
         print("CONTEXT SENT TO LLM")

@@ -29,9 +29,6 @@ def ask_llm(prompt):
                 {"role": "user", "content": prompt},
             ],
             "stream": False,
-            "options": {
-                "num_ctx": 65536
-            }
         },
         timeout=600,
     )
